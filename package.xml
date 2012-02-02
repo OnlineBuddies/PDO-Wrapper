@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.9.4" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+    http://pear.php.net/dtd/tasks-1.0.xsd
+    http://pear.php.net/dtd/package-2.0
+    http://pear.php.net/dtd/package-2.0.xsd">
+ <name>OLB_PDO</name>
+ <channel>onlinebuddies.github.com/pear</channel>
+ <summary>Singletons, retries and transactions, oh my</summary>
+ <description>A simple PDO wrapper that adds singletons, retries and improved transaction support.</description>
+ <lead>
+  <name>Online Buddies, Inc</name>
+  <user>olb</user>
+  <email>development@online-buddies.com</email>
+  <active>yes</active>
+ </lead>
+ <date>2012-02-02</date>
+ <time>14:58:15</time>
+ <version>
+  <release>0.1.0</release>
+  <api>0.1.0</api>
+ </version>
+ <stability>
+  <release>beta</release>
+  <api>beta</api>
+ </stability>
+ <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
+ <notes>
+Initial release.
+ </notes>
+ <contents>
+  <dir baseinstalldir="/" name="/">
+   <file baseinstalldir="/" name="build/lime.php" role="data" />
+   <file baseinstalldir="/" name="build/mh_lime.php" role="data" />
+   <file baseinstalldir="/" name="build/test.php" role="data" />
+   <file baseinstalldir="/" name="OLB/PDO.php" role="php" />
+   <file baseinstalldir="/" name="OLB/PDO/STH.php" role="php" />
+   <file baseinstalldir="/" name="test/PDO_Basics_Test.php" role="test" />
+   <file baseinstalldir="/" name="test/PDO_Reconnect_Test.php" role="test" />
+   <file baseinstalldir="/" name="test/PDO_Transactions.php" role="test" />
+   <file baseinstalldir="/" name="PDO_TODO" role="data" />
+   <file baseinstalldir="/" name="README.md" role="data" />
+  </dir>
+ </contents>
+ <dependencies>
+  <required>
+   <php>
+    <min>5.2</min>
+   </php>
+   <pearinstaller>
+    <min>1.4.0</min>
+   </pearinstaller>
+  </required>
+ </dependencies>
+ <phprelease />
+ <changelog>
+  <release>
+   <version>
+    <release>0.1.0</release>
+    <api>0.1.0</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2012-02-02</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
+   <notes>
+Initial release.
+   </notes>
+  </release>
+ </changelog>
+</package>
