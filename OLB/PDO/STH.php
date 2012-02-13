@@ -34,9 +34,14 @@ class OLB_PDO_STH implements Iterator {
     
     /**
      * Create a new statement handle using PDO's prepare method
+     *
      * @param OLB_PDO $dbh
      * @param string $sql
      * @param array $attrs
+     * @param $class The class name of the object to create-- this would be
+     * our classname, except that this is necessary to allow you to
+     * construct an inherited PDO_STH class.
+     * @returns OLB_PDO_STH | FALSE
      */
     public static function newFromPrepare( OLB_PDO $dbh, $sql, array $attrs=array(), $class ) {
         $obj = new $class( $dbh, $sql, $attrs );
@@ -50,9 +55,14 @@ class OLB_PDO_STH implements Iterator {
     
     /**
      * Create a new statement handle using PDO's query method
+     *
      * @param OLB_PDO $dbh
      * @param string $sql
      * @param array $fetchMode
+     * @param $class The class name of the object to create-- this would be
+     * our classname, except that this is necessary to allow you to
+     * construct an inherited PDO_STH class.
+     * @returns OLB_PDO_STH | FALSE
      */
     public static function newFromQuery( OLB_PDO $dbh, $sql, $fetchMode, $class) {
         $obj = new $class( $dbh, $sql );
@@ -65,8 +75,10 @@ class OLB_PDO_STH implements Iterator {
     }
     
     /**
-     * @param string $Name
-     * @param array &$args
+     * Magic to wrap all other methods.
+     *
+     * @param string $name
+     * @param array $args
      */ 
     public function __call($name,array $args) {
         try {
@@ -276,6 +288,8 @@ class OLB_PDO_STH implements Iterator {
     
     /**
      * Return everything what we know about this query, for debugging.
+     * @param array $bind (optional) If bind is passed in, it is used
+     * logged as additional bind params passed in at execute time.
      * @returns string
      */
     protected function dump($bind = null) {

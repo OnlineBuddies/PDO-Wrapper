@@ -8,7 +8,7 @@
 require_once( dirname(__FILE__)."/PDO/STH.php" );
 
 /**
- * OLB PDO wrapper
+ * A wrapper for PDO that adds connection retries, singletons and safer transactions
  */
 class OLB_PDO {
 
@@ -122,6 +122,12 @@ class OLB_PDO {
     /**
      * Fetches the singleton PDO wrapper.  The parameters are the same
      * as to PDO, and one singleton will be made for each unique set of arguments.
+     * @param string $dsn
+     * @param string $username (optional)
+     * @param string $password (optional)
+     * @param array $attrs (optional)
+     * @param string $class (optional)
+     * @returns OLB_PDO
      */
     public static function getInstance( $dsn, $username=null, $password=null, array $attrs=null, $class=null ) {
         if ( !isset($class) ) {
@@ -651,7 +657,7 @@ class OLB_PDO {
     /**
      * Log a warning
      *
-     * @param string $message
+     * @param string $msg
      */
     public function logWarning( $msg ) {
         assert('is_string($msg)');
