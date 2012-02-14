@@ -329,7 +329,7 @@ class OLB_PDO_STH implements Iterator {
      * @returns bool
      * @throws PDOException
      */
-    public function execute($bind = null) {
+    public function execute($bind = null, $options = null) {
 
         $this->dbh->traceTimerStart();
         
@@ -339,6 +339,8 @@ class OLB_PDO_STH implements Iterator {
         $this->rowNum = -1;
 
         $args = func_get_args();
+
+        $retry_deadlocks = @$options[ OLB_PDO::RETRY_DEADLOCKS ];
 
         $tries = $this->dbh->getAttribute( OLB_PDO::RETRIES );
         while ($tries--) {
@@ -372,7 +374,7 @@ class OLB_PDO_STH implements Iterator {
                 // that means we called a proc that ran in a transaction.  As
                 // the transaction is entirely in the proc, we can safely retry
                 // it.
-                else if ( ! $this->dbh->inTransaction() and strpos($e->getMessage()," 1213 ") ) {
+                else if ( ! $this->dbh->inTransaction() and $retry_deadlocks and $this->dbh->_is_deadlock($e) ) {
                     // And we don't have to do anything to retry this, just
                     // fall through to the loop.
                 }
