@@ -8,17 +8,18 @@
  */
 
 @include dirname(__FILE__)."/../build/test.php"; // Under OLBSL
-@include dirname(__FILE__)."/../../bootstrap/unit.php"; // In MHBangV4
-@include_once "OLB/PDO.php";
-@include_once SF_ROOT."/OLB/PDO.php";
-
-global $t;
+require_once "OLB/PDO.php";
 
 $t = new mh_test(34);
 
-define( "DSN", "mysql:host=dev-maindb.dev.manhunt.net;dbname=test" );
-define( "USER", "build" );
-define( "PASS", "lettherebedata" );
+define( "DSN", "mysql:dbname=test" );
+define( "USER", "root" );
+define( "PASS", null );
+
+function trace($msg) {
+    global $t;
+    $t->diag($msg);
+}
 
 // Separate functions here to get separate scopes for our variables
 fresh();
@@ -47,7 +48,7 @@ function fresh() {
     $dbh->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
 
     $dbh->exec("DROP TABLE IF EXISTS pdo_test");
-    $dbh->exec("CREATE TABLE pdo_test ( id int auto_increment primary key, foo varchar(50) not null )");
+    $dbh->exec("CREATE TABLE pdo_test ( id int auto_increment primary key, foo varchar(50) not null ) ENGINE=InnoDB");
 
     $dbh->beginTransaction();
 
