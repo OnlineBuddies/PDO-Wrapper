@@ -8,17 +8,21 @@
  */
 
 @include dirname(__FILE__)."/../build/test.php"; // Under OLBSL
-@include dirname(__FILE__)."/../../bootstrap/unit.php"; // In MHBangV4
-@include_once "OLB/PDO.php";
-@include_once SF_ROOT."/OLB/PDO.php";
+require_once "OLB/PDO.php";
 
 $t = new mh_test(5);
 
-define( "HOST", "dev-maindb.dev.manhunt.net" );
+function trace($msg) {
+    global $t;
+    $t->diag($msg);
+}
+
+
+define( "HOST", "localhost" );
 define( "DBNAME", "test" );
 define( "DSN", "mysql:host=".HOST.";dbname=".DBNAME );
-define( "USER", "build" );
-define( "PASS", "lettherebedata" );
+define( "USER", "root" );
+define( "PASS", null );
 
 class Test_PDO extends OLB_PDO {
     public function logRetry( $connects, $retries, $str ) {
