@@ -8,17 +8,21 @@
  */
 
 @include dirname(__FILE__)."/../build/test.php"; // Under OLBSL
-@include dirname(__FILE__)."/../../bootstrap/unit.php"; // In MHBangV4
-@include_once "OLB/PDO.php";
-@include_once SF_ROOT."/OLB/PDO.php";
+require_once "OLB/PDO.php";
 
 $t = new mh_test(7);
 
-define( "HOST", "dev-maindb.dev.manhunt.net" );
+function trace($msg) {
+    global $t;
+    $t->diag($msg);
+}
+
+
+define( "HOST", "localhost" );
 define( "DBNAME", "test" );
 define( "DSN", "mysql:host=".HOST.";dbname=".DBNAME );
-define( "USER", "build" );
-define( "PASS", "lettherebedata" );
+define( "USER", "root" );
+define( "PASS", null );
 
 class Test_PDO extends OLB_PDO {
     public function logRetry( $connects, $retries, $str ) {
@@ -61,11 +65,11 @@ $prop = $class->getProperty("params");
 if ( is_callable(array($prop,"setAccessible")) ) {
     $prop->setAccessible(TRUE);
     $params = $prop->getValue( $dbh );
-    $params['password'] = null;
+    $params['password'] = "alskdjflkdjf";
     $prop->setValue( $dbh, $params );
 
     kill_process($dbh);
-    $t->try_test( "Without a username, we can't reconnect" );
+    $t->try_test( "Without an invalid password, we can't reconnect" );
     try {
         ping($dbh);
         $t->fail();
