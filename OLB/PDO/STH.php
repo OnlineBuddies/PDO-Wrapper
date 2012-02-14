@@ -325,14 +325,22 @@ class OLB_PDO_STH implements Iterator {
     /**
      * This wraps PDO's execute method in code that will retry the MySQL has
      * gone away error.
-     * @param $bind
+     * @param array $bind (optional)
+     * @param array $attrs (optional) You can set the RETRY_DEADLOCKS and RETRIES options
+     * on a per query basis by passing them in here.
      * @returns bool
      * @throws PDOException
      */
-    public function execute($bind = null) {
+    public function execute($bind = null, $attrs = null) {
 
         $this->dbh->traceTimerStart();
-        
+
+        if ( ! isset($attrs) ) {
+            $attrs = array();
+        }
+        $retry_deadlocks = isset($attrs[ OLB_PDO::RETRY_DEADLOCKS ]) ? $attrs[ OLB_PDO::RETRY_DEADLOCKS ] : $this->dbh->getAttribute( OLB_PDO::RETRY_DEADLOCKS );
+        $tries = isset($attrs[ OLB_PDO::RETRIES ]) ? $attrs[ OLB_PDO::RETRIES ] : $this->dbh->getAttribute( OLB_PDO::RETRIES );
+
         // Clear our tracking variables for iterator mode
         $this->rowSets = 0;
         unset($this->row);
@@ -340,7 +348,7 @@ class OLB_PDO_STH implements Iterator {
 
         $args = func_get_args();
 
-        $tries = $this->dbh->getAttribute( OLB_PDO::RETRIES );
+
         while ($tries--) {
 
             try {
@@ -372,7 +380,7 @@ class OLB_PDO_STH implements Iterator {
                 // that means we called a proc that ran in a transaction.  As
                 // the transaction is entirely in the proc, we can safely retry
                 // it.
-                else if ( ! $this->dbh->inTransaction() and strpos($e->getMessage()," 1213 ") ) {
+                else if ( ! $this->dbh->inTransaction() and $retry_deadlocks and $this->dbh->_is_deadlock($e) ) {
                     // And we don't have to do anything to retry this, just
                     // fall through to the loop.
                 }

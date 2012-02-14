@@ -27,6 +27,9 @@ class OLB_PDO {
     /// Trace calls
     const TRACE           = -1004;
 
+    /// Retry deadlocks resulting from normal execute commands
+    const RETRY_DEADLOCKS = -1005;
+
     /// Default connnection attributes:
     ///    Throw exceptions on errors and autocommit statements
     ///    Note that we can mix and match our own constant
@@ -38,6 +41,7 @@ class OLB_PDO {
             self::RETRY_BACKOFF          => 400, // ms
             self::RETRY_JITTER           => 0.50, // * RETRY_BACKOFF * rand(1.0)
             self::TRACE                  => FALSE,
+            self::RETRY_DEADLOCKS        => FALSE,
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_AUTOCOMMIT         => TRUE,
             PDO::MYSQL_ATTR_INIT_COMMAND => 'SET CHARACTER SET UTF8',
@@ -320,6 +324,20 @@ class OLB_PDO {
         return $result;
     }
     
+    /**
+     * @param Exception $e
+     * @returns bool True if the exception represents a deadlock
+     */
+    public function _is_deadlock(Exception $e) {
+        $msg = $e->getMessage();
+        if ( strpos( $msg, " 1213 " ) !== FALSE ) {
+            return TRUE;
+        }
+        else {
+            return FALSE;
+        }
+    }
+
     /**
      * @param Exception $e
      * @returns Boolean True if the database error in $e is retryable
