@@ -7,9 +7,10 @@
  * @author bturner@online-buddies.com
  */
 
-@include dirname(__FILE__)."/../build/test.php"; // Under OLBSL
+include dirname(__FILE__)."/../build/test.php";
 require_once "OLB/PDO.php";
 
+global $t;
 $t = new mh_test(7);
 
 function trace($msg) {

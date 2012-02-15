@@ -16,5 +16,11 @@ uninstall:
 test:
 	$(PROVE) test
 
+test-cover:
+	rm -rf tmp/test coverage
+	TEST_COVERAGE=1 $(PROVE) test
+	phpcov --merge --html coverage tmp/test/coverage
+	rm -rf tmp/test
+
 test-verbose:
 	$(PROVE) -v test
