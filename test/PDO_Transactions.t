@@ -7,9 +7,10 @@
  * @author bturner@online-buddies.com
  */
 
-@include dirname(__FILE__)."/../build/test.php"; // Under OLBSL
+include dirname(__FILE__)."/../build/test.php";
 require_once "OLB/PDO.php";
 
+global $t;
 $t = new mh_test(5);
 
 function trace($msg) {
@@ -31,6 +32,7 @@ class Test_PDO extends OLB_PDO {
     }
 }
 
+global $suffix;
 $suffix = getmypid();
 
 $dbh = Test_PDO::getInstance( DSN, USER, PASS, array( OLB_PDO::TRACE => 'trace', PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION ));
@@ -97,6 +99,7 @@ catch (PDOException $e) {
 // Test that deadlock exceptions results in retries-- we do this by
 // artificially throwing an exception, as we can't easily do this in the
 // current development environment.
+global $tried;
 $tried = 0;
 function test3_do($dbh) {
     global $suffix;
