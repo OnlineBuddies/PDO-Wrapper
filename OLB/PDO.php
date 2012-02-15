@@ -500,7 +500,7 @@ class OLB_PDO {
                     $this->retrySleep($tries);
                 }
                 // If this is NOT a deadlock, rewthrow it
-                else if ( strpos($e->getMessage()," 1213 ")===FALSE ) {
+                else if ( ! $this->_is_deadlock($e) ) {
                     throw $e;
                 }
                 // Otherwise it was a deadlock, sleep and retry
