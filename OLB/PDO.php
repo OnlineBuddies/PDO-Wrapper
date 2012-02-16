@@ -339,10 +339,10 @@ class OLB_PDO {
      */
     public function _retryable(Exception $e) {
         $msg = $e->getMessage();
-        if ( strpos( $msg, "2006 MySQL" ) !== FALSE or 
-             strpos( $msg, "2013 Lost connection" ) !== FALSE or 
-             strpos( $msg, "1053 Server shutdown" ) !== FALSE or
-             strpos( $msg, "1317 Query execution was interrupted" ) !== FALSE ) {
+        if ( strpos( $msg, " 2006 " ) !== FALSE or # MySQL server has gone away
+             strpos( $msg, " 2013 " ) !== FALSE or # MySQL server has gone away
+             strpos( $msg, " 1053 " ) !== FALSE or # Server shutdown
+             strpos( $msg, " 1317 " ) !== FALSE ) { # Query execution was interrupted
             return TRUE;
         }
         else {
