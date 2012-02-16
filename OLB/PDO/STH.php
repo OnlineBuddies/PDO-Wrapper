@@ -401,6 +401,7 @@ class OLB_PDO_STH implements Iterator {
             
             $this->dbh->retrySleep( $tries );
         }
+        $this->dbh->queryException($e,$this->dump($bind));
     }
     
     /**
