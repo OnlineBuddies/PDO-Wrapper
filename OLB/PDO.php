@@ -166,7 +166,7 @@ class OLB_PDO {
      */
     protected function clearSingleton() {
         if ( !isset($this->instance_id) ) {
-            throw new Exception("Can't clear singleton bit on a non-singleton database handle");
+            throw new PDOException("Can't clear singleton bit on a non-singleton database handle");
         }
         $this->is_singleton = FALSE;
         unset(self::$instances[$this->instance_id]);
@@ -181,10 +181,10 @@ class OLB_PDO {
      */
     protected function makeSingleton() {
         if ( !isset($this->instance_id) ) {
-            throw new Exception("Can't set singleton bit on a non-singleton database handle");
+            throw new PDOException("Can't set singleton bit on a non-singleton database handle");
         }
         if ( isset(self::$instances[$this->instance_id]) ) {
-            $this->logWarning( "Failed to set database handle, ".$this->dsn." as singleton as another one was already created" );
+            $this->logWarning( "Failed to set database handle, ".$this->params['dsn'].", as singleton as another one was already created" );
         }
         else {
             $this->is_singleton = TRUE;
@@ -223,13 +223,8 @@ class OLB_PDO {
         for ( $tries=0; $tries < $maxRetries; ++$tries ) {
 
             // Log and sleep on second and later attempts
-            if ( $tries ) {
-                if ( isset($error) ) {
-                    $this->logRetry( $this->connects, $tries, $error->getMessage() );
-                }
-                else {
-                    $this->logRetry( $this->connects, $tries, "Reconnect after explicit disconnect" );
-                }
+            if ( $tries and isset($error) ) {
+                $this->logRetry( $this->connects, $tries, $error->getMessage() );
             }
             if ( $tries ) {
                 $this->retrySleep($tries);
@@ -258,7 +253,7 @@ class OLB_PDO {
             throw $error;
         }
         else {
-            throw new Exception("Error while connecting to database it looks like maxRetries ($maxRetries) may not have been set.");
+            throw new PDOException("Error while connecting to database it looks like RETRIES ($maxRetries) may not have been set.");
         }
     }
     
@@ -344,10 +339,10 @@ class OLB_PDO {
      */
     public function _retryable(Exception $e) {
         $msg = $e->getMessage();
-        if ( strpos( $msg, "2006 MySQL" ) !== FALSE or 
-             strpos( $msg, "2013 Lost connection" ) !== FALSE or 
-             strpos( $msg, "1053 Server shutdown" ) !== FALSE or
-             strpos( $msg, "1317 Query execution was interrupted" ) !== FALSE ) {
+        if ( strpos( $msg, " 2006 " ) !== FALSE or # MySQL server has gone away
+             strpos( $msg, " 2013 " ) !== FALSE or # MySQL server has gone away
+             strpos( $msg, " 1053 " ) !== FALSE or # Server shutdown
+             strpos( $msg, " 1317 " ) !== FALSE ) { # Query execution was interrupted
             return TRUE;
         }
         else {
@@ -500,7 +495,7 @@ class OLB_PDO {
                     $this->retrySleep($tries);
                 }
                 // If this is NOT a deadlock, rewthrow it
-                else if ( strpos($e->getMessage()," 1213 ")===FALSE ) {
+                else if ( ! $this->_is_deadlock($e) ) {
                     throw $e;
                 }
                 // Otherwise it was a deadlock, sleep and retry
