@@ -11,7 +11,7 @@ include dirname(__FILE__)."/../build/test.php";
 require_once "OLB/PDO.php";
 
 global $t;
-$t = new mh_test(5);
+$t = new mh_test(13);
 
 function trace($msg) {
     global $t;
@@ -48,16 +48,63 @@ foreach ($init as $sql) {
 
 $dbh->exec("DROP TABLE IF EXISTS pdo_test$suffix");
 $dbh->exec("CREATE TABLE pdo_test$suffix ( id int auto_increment primary key, foo varchar(50) not null ) ENGINE=InnoDB");
+
+$t->try_test("Nested transactions throw an exception");
+try {
+    $dbh2->beginTransaction();
+    $dbh2->beginTransaction();
+    $t->fail();
+}
+catch (PDOException $e) {
+    $t->pass();
+}
+
+$dbh2->rollBack();
+$dbh2->beginTransaction();
+
+$dbh2->exec("INSERT INTO pdo_test$suffix SET foo='test this'");
+
+$sth = $dbh2->query("SELECT COUNT(*) as count FROM pdo_test$suffix", PDO::FETCH_OBJ );
+$obj = $sth->fetch();
+$t->is( $obj->count, 1, "Transactions: Insert added a row" );
+
+$dbh2->rollBack();
+
+$sth = $dbh2->query("SELECT COUNT(*) as count FROM pdo_test$suffix", PDO::FETCH_OBJ );
+$obj = $sth->fetch();
+$t->is( $obj->count, 0, "Transactions: Rollback removed the row" );
+
+$dbh2->beginTransaction();
+
+$dbh2->exec("INSERT INTO pdo_test$suffix SET foo='out'");
+
+$sth = $dbh2->query("SELECT COUNT(*) as count FROM pdo_test$suffix", PDO::FETCH_OBJ );
+$obj = $sth->fetch();
+$t->is( $obj->count, 1, "Transactions: Insert added another row" );
+
+$dbh2->commit();
+
+$sth = $dbh2->query("SELECT COUNT(*) as count FROM pdo_test$suffix", PDO::FETCH_OBJ );
+$obj = $sth->fetch();
+$t->is( $obj->count, 1, "Transactions: And its still there after our commit" );
+
+
+$dbh->exec("DELETE FROM pdo_test$suffix");
 $dbh->exec("INSERT INTO pdo_test$suffix SET foo='test this'");
+
 
 // Test that successful transactions work
 function test1_do($dbh) {
+    global $t;
+    $t->diag("Running transaction...");
     global $suffix;
     $sth = $dbh->prepare("SELECT MAX(id) FROM pdo_test$suffix");
     $sth->execute();
     $row = $sth->fetch();
     $sth = $dbh->prepare("INSERT INTO pdo_test$suffix SET foo=?");
     $sth->execute(array( "Test #".$row[0]." added"));
+    global $id;
+    $id = $dbh->lastInsertId();
 }
 function test1_rollback($dbh) {
     global $t;
@@ -66,10 +113,10 @@ function test1_rollback($dbh) {
 
 $dbh->execTransaction( "test1_do", "test1_rollback" );
 
-$sth = $dbh->prepare("SELECT * FROM pdo_test$suffix WHERE id=2");
-$sth->execute();
+$sth = $dbh->prepare("SELECT * FROM pdo_test$suffix WHERE id=?");
+$sth->execute(array( $id ));
 $row = $sth->fetch();
-$t->is( $row['foo'], "Test #1 added", "Transaction completed");
+$t->like( $row['foo'], "/Test #\d+ added/", "Transaction completed");
 
 
 // Test that invalid transactions get rolled back
@@ -102,6 +149,8 @@ catch (PDOException $e) {
 global $tried;
 $tried = 0;
 function test3_do($dbh) {
+    global $t;
+    $t->diag("Running transaction...");
     global $suffix;
     $sth = $dbh->prepare("SELECT MAX(id) FROM pdo_test$suffix");
     $sth->execute();
@@ -131,6 +180,50 @@ try {
 }
 catch (Exception $e) {
     $t->except_fail($e);
+}
+
+$tried = 0;
+// Make the retry counter fail out
+function test4_do($dbh) {
+    global $t;
+    $t->diag("Running transaction...");
+    global $tried;
+    $tried ++;
+    kill_process($dbh);
+    ping($dbh);
+}
+function test4_rollback($dbh) {
+    global $t;
+    $t->diag("Rolling back");
+}
+
+$t->try_test("Transaction fail retry timeout");
+try {
+    $dbh->execTransaction( "test4_do", "test4_rollback" );
+    $t->fail();
+}
+catch (PDOException $e) {
+    $t->pass();
+}
+$t->is( $tried, 6, "transaction retries exhausted all retries" );
+
+
+// Make the retry counter fail out
+function test5_do($dbh) {
+    throw new Exception("BOOM");
+}
+function test5_rollback($dbh) {
+    global $t;
+    $t->diag("Rolling back");
+}
+
+$t->try_test("Transaction fail retry timeout");
+try {
+    $dbh->execTransaction( "test5_do", "test5_rollback" );
+    $t->fail();
+}
+catch (Exception $e) {
+    $t->pass();
 }
 
 
@@ -179,4 +272,22 @@ $dbh->exec("DROP TABLE IF EXISTS deadlock_maker$suffix");
 
 
 $dbh->exec("DROP TABLE IF EXISTS pdo_test$suffix");
+
+ 
+ 
+function kill_process($dbh) {
+    $id = get_value( $dbh->query("SELECT connection_id()") );
+    $kdbh = new Test_PDO( DSN, USER, PASS );
+    return $kdbh->exec( "KILL $id" );
+}
+
+function get_value($sth) {
+    list($value) = @$sth->fetch(PDO::FETCH_NUM);
+    return $value;
+}
+
+function ping($dbh) {
+    $sth = @$dbh->query("SELECT 1");
+    return get_value($sth) == 1;
+}
 

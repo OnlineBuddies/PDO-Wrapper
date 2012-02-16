@@ -82,7 +82,13 @@ class OLB_PDO_STH implements Iterator {
      */ 
     public function __call($name,array $args) {
         try {
-            return call_user_func_array(array($this->sth,$name), $args);
+            // We use is_callable instead of method_exists as it coexists with __call better.
+            if ( is_callable(array($this->sth,$name)) ) {
+                return call_user_func_array(array($this->sth,$name), $args);
+            }
+            else {
+                throw new Exception( "Class '".get_class($this)."' does not have a method '$name'" );
+            }
         }
         catch (Exception $e) {
             if ( isset($this->sth) ) {
@@ -395,6 +401,7 @@ class OLB_PDO_STH implements Iterator {
             
             $this->dbh->retrySleep( $tries );
         }
+        $this->dbh->queryException($e,$this->dump($bind));
     }
     
     /**

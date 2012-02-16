@@ -1,44 +1,33 @@
-Things missed in testing according to code coverage:
+OLB_PDO
 
-_load_opts with a null value to unset a feature previously set
-clearSingleton on a non-singleton
-makeSingleton on a non-singleton
-makeSingleton after another singleton was created
-logging of reconnecting after explicit disconnects
-reconnecting a connection with attributes set via setAttribute
-reconnecting when maxRetries is not set
-exec retries
-execTransaction retry exhaustion
-execTransaction database has gone away retries
-execTransaction, non-PDO exceptions, with rollback PHP
-beginTransaction, while in a transaction
-beginTransaction retries
-beginTransaction failures
-Setting one of our connection attributes
-Getting an unset one of our connection attributes
-Preparing a statement handle that fails (and returns false)
-Wrapped STH call that results in an exception
-    With an open statement handle to close
-Rewinding an interator when there's more then one rowset
-Getting a key using iterator support, eg, foreach ($sth as $key=>$value) { ...
-Calling bindParam with PDO::PARAM_INPUT_OUTPUT
-Retryable exception during a transaction while in ->query
-Non-retryable exception while in ->query
-Retryable exception during a transaction while in ->prepare
-Non-retryable exception while in ->prepare
-Prepare that returns FALSE
-Prepare with a fetchmode
-Prepare retry with bindValues
-Prepare retry with bindParams
-Prepare retry with bindColumns
-Prepare retry with STH attrs
-->dump with bindValues
-->dump with bindParams
-->dump with bindColumns
-->dump with STH attrs
-->dump with fetchMode
-execute retryable exception while in transaction
-deadlock retry on execute
-non-PDO exception on execute
-setAttribute on STH
-getAttribute on STH
+  beginTransaction
+    In order to induce these we will need to mock PDO itself.
+      PDO::beginTransaction throwing a non-retryable exception
+      PDO::beginTransaction returning false
+  
+  logRetry
+  logWarning
+  logRetry
+    The code involved here are just calls to error_log and are usually overridden.
+
+OLB_PDO_STH
+
+  rewind
+    Used in iterator mode when working with multiple rowsets.
+
+  prepare
+    On reconnect, resetting:
+      fetchMode, bindValues, bindParams, bindColumns and attrs
+
+  dump
+    On errors, printing out:
+      bindValues, bindParams, bindColumns, attrs and fetchMode
+
+  execute
+    Error thrown after running out of retries.
+    This will require a mock PDOStatement object:
+      PDOStatement::execute throwing a non-PDOException
+
+  setAttribute
+  getAttribute
+    This may require a mock PDOStatement object, as most drivers do not actually implement statement handle attributes.
