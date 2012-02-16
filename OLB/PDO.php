@@ -223,13 +223,8 @@ class OLB_PDO {
         for ( $tries=0; $tries < $maxRetries; ++$tries ) {
 
             // Log and sleep on second and later attempts
-            if ( $tries ) {
-                if ( isset($error) ) {
-                    $this->logRetry( $this->connects, $tries, $error->getMessage() );
-                }
-                else {
-                    $this->logRetry( $this->connects, $tries, "Reconnect after explicit disconnect" );
-                }
+            if ( $tries and isset($error) ) {
+                $this->logRetry( $this->connects, $tries, $error->getMessage() );
             }
             if ( $tries ) {
                 $this->retrySleep($tries);
