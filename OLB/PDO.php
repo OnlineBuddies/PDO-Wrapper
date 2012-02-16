@@ -184,7 +184,7 @@ class OLB_PDO {
             throw new PDOException("Can't set singleton bit on a non-singleton database handle");
         }
         if ( isset(self::$instances[$this->instance_id]) ) {
-            $this->logWarning( "Failed to set database handle, ".$this->dsn." as singleton as another one was already created" );
+            $this->logWarning( "Failed to set database handle, ".$this->params['dsn'].", as singleton as another one was already created" );
         }
         else {
             $this->is_singleton = TRUE;
