@@ -166,7 +166,7 @@ class OLB_PDO {
      */
     protected function clearSingleton() {
         if ( !isset($this->instance_id) ) {
-            throw new Exception("Can't clear singleton bit on a non-singleton database handle");
+            throw new PDOException("Can't clear singleton bit on a non-singleton database handle");
         }
         $this->is_singleton = FALSE;
         unset(self::$instances[$this->instance_id]);
@@ -181,7 +181,7 @@ class OLB_PDO {
      */
     protected function makeSingleton() {
         if ( !isset($this->instance_id) ) {
-            throw new Exception("Can't set singleton bit on a non-singleton database handle");
+            throw new PDOException("Can't set singleton bit on a non-singleton database handle");
         }
         if ( isset(self::$instances[$this->instance_id]) ) {
             $this->logWarning( "Failed to set database handle, ".$this->dsn." as singleton as another one was already created" );
@@ -258,7 +258,7 @@ class OLB_PDO {
             throw $error;
         }
         else {
-            throw new Exception("Error while connecting to database it looks like maxRetries ($maxRetries) may not have been set.");
+            throw new PDOException("Error while connecting to database it looks like RETRIES ($maxRetries) may not have been set.");
         }
     }
     
