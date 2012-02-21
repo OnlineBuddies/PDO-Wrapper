@@ -7,7 +7,7 @@
  * @author bturner@online-buddies.com
  */
 
-include dirname(__FILE__)."/../build/test.php";
+include dirname(__FILE__)."/../build/mh_test.php";
 require_once "OLB/PDO.php";
 
 global $t;

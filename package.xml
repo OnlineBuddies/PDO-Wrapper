@@ -13,11 +13,11 @@
   <email>development@online-buddies.com</email>
   <active>yes</active>
  </lead>
- <date>2012-02-02</date>
- <time>14:58:15</time>
+ <date>2012-02-21</date>
+ <time>18:40:00</time>
  <version>
-  <release>0.1.0</release>
-  <api>0.1.0</api>
+  <release>0.2.0</release>
+  <api>0.1.1</api>
  </version>
  <stability>
   <release>beta</release>
@@ -25,19 +25,29 @@
  </stability>
  <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
  <notes>
-Initial release.
+* Added RETRY_DEADLOCKS flag-- when it's true, we will retry deadlocked queries.
+* Converted Exception to PDOException
+* Reduced and simplified warnings relating to retries.  We now log only if
+  the first reconnect fails.  Previously we retried prior to the first
+  reconnection attempt if we had previously reconnected.
+* Changed retryable exception detection to use only on the error number.
+* Correctly throw calls to invalid methods on PDO_STH
+* Allow RETRIES and RETRY_DEADLOCKS to be overridden on calls to ->execute
+* Improved test suite with nearly 100% coverage
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
-   <file baseinstalldir="/" name="build/lime.php" role="data" />
-   <file baseinstalldir="/" name="build/mh_lime.php" role="data" />
-   <file baseinstalldir="/" name="build/test.php" role="data" />
+   <file baseinstalldir="/" name="build/lime_test.php" role="data" />
+   <file baseinstalldir="/" name="build/mh_test.php" role="data" />
    <file baseinstalldir="/" name="OLB/PDO.php" role="php" />
    <file baseinstalldir="/" name="OLB/PDO/STH.php" role="php" />
-   <file baseinstalldir="/" name="test/PDO_Basics_Test.php" role="test" />
-   <file baseinstalldir="/" name="test/PDO_Reconnect_Test.php" role="test" />
-   <file baseinstalldir="/" name="test/PDO_Transactions.php" role="test" />
+   <file baseinstalldir="/" name="test/Constructors.t" role="test" />
+   <file baseinstalldir="/" name="test/Queries.t" role="test" />
+   <file baseinstalldir="/" name="test/Reconnect.t" role="test" />
+   <file baseinstalldir="/" name="test/Singletons.t" role="test" />
+   <file baseinstalldir="/" name="test/Transactions.t" role="test" />
    <file baseinstalldir="/" name="PDO_TODO" role="data" />
+   <file baseinstalldir="/" name="COVER_TODO" role="data" />
    <file baseinstalldir="/" name="README.md" role="data" />
   </dir>
  </contents>
@@ -53,6 +63,29 @@ Initial release.
  </dependencies>
  <phprelease />
  <changelog>
+  <release>
+   <version>
+    <release>0.2.0</release>
+    <api>0.1.1</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2012-02-21</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
+   <notes>
+* Added RETRY_DEADLOCKS flag-- when it's true, we will retry deadlocked queries.
+* Converted Exception to PDOException
+* Reduced and simplified warnings relating to retries.  We now log only if
+  the first reconnect fails.  Previously we retried prior to the first
+  reconnection attempt if we had previously reconnected.
+* Changed retryable exception detection to use only on the error number.
+* Correctly throw calls to invalid methods on PDO_STH
+* Allow RETRIES and RETRY_DEADLOCKS to be overridden on calls to ->execute
+* Improved test suite with nearly 100% coverage
+   </notes>
+  </release>
   <release>
    <version>
     <release>0.1.0</release>
