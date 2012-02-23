@@ -37,8 +37,8 @@
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
-   <file baseinstalldir="/" name="build/lime_test.php" role="data" />
-   <file baseinstalldir="/" name="build/mh_test.php" role="data" />
+   <file baseinstalldir="/" name="build/lime_test.php" role="test" />
+   <file baseinstalldir="/" name="build/mh_test.php" role="test" />
    <file baseinstalldir="/" name="OLB/PDO.php" role="php" />
    <file baseinstalldir="/" name="OLB/PDO/STH.php" role="php" />
    <file baseinstalldir="/" name="test/Constructors.t" role="test" />
@@ -46,9 +46,9 @@
    <file baseinstalldir="/" name="test/Reconnect.t" role="test" />
    <file baseinstalldir="/" name="test/Singletons.t" role="test" />
    <file baseinstalldir="/" name="test/Transactions.t" role="test" />
-   <file baseinstalldir="/" name="PDO_TODO" role="data" />
-   <file baseinstalldir="/" name="COVER_TODO" role="data" />
-   <file baseinstalldir="/" name="README.md" role="data" />
+   <file baseinstalldir="/" name="PDO_TODO" role="doc" />
+   <file baseinstalldir="/" name="COVER_TODO" role="doc" />
+   <file baseinstalldir="/" name="README.md" role="doc" />
   </dir>
  </contents>
  <dependencies>
