@@ -9,8 +9,17 @@ require_once( dirname(__FILE__)."/PDO/STH.php" );
 
 /**
  * A wrapper for PDO that adds connection retries, singletons and safer transactions
+ *
+ * It extends PDO, which at first seems natural until you see that we
+ * override every one of PDO's methods and actually store a plain PDO object
+ * and call methods on that.  We have to do this in order to allow reconnecting which
+ * involves throwing away the old PDO object and making a new one.
+ * The reasons we still extend PDO at all are:
+ *     It lets us inherit all of its constants.
+ *     It allows our wrapper to be used anywhere something has a class
+ *     constraint on PDO.
  */
-class OLB_PDO {
+class OLB_PDO extends PDO {
 
     /// The name of the statement handle class to use, default OLB_PDO_STH
     const STH_CLASS       = -1000;
@@ -36,15 +45,15 @@ class OLB_PDO {
     ///    as PDO constants
     protected function connect_attrs() {
         return array(
-            self::STH_CLASS              => 'OLB_PDO_STH',
-            self::RETRIES                => 5,
-            self::RETRY_BACKOFF          => 400, // ms
-            self::RETRY_JITTER           => 0.50, // * RETRY_BACKOFF * rand(1.0)
-            self::TRACE                  => FALSE,
-            self::RETRY_DEADLOCKS        => FALSE,
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_AUTOCOMMIT         => TRUE,
-            PDO::MYSQL_ATTR_INIT_COMMAND => 'SET CHARACTER SET UTF8',
+            self::STH_CLASS               => 'OLB_PDO_STH',
+            self::RETRIES                 => 5,
+            self::RETRY_BACKOFF           => 400, // ms
+            self::RETRY_JITTER            => 0.50, // * RETRY_BACKOFF * rand(1.0)
+            self::TRACE                   => FALSE,
+            self::RETRY_DEADLOCKS         => FALSE,
+            self::ATTR_ERRMODE            => self::ERRMODE_EXCEPTION,
+            self::ATTR_AUTOCOMMIT         => TRUE,
+            self::MYSQL_ATTR_INIT_COMMAND => 'SET CHARACTER SET UTF8',
             );
     }
 
@@ -272,7 +281,7 @@ class OLB_PDO {
      * @param array $opts driver options
      * @returns OLB_PDO_STH
      */
-    public function prepare($sql, array $opts=array()) {
+    public function prepare($sql, $opts=array()) {
         assert('is_string($sql)');
         assert('strlen($sql) > 0');
         if ( !isset($this->dbh) ) { $this->connect(); } // Reconnect if we were explicitly disconnected
@@ -637,20 +646,34 @@ class OLB_PDO {
     }
     
     /**
-     * Pass any unknown functions through to PDO
-     * @param string $name
-     * @param array $args
+     * @param string $string
+     * @param int $parameter_type (default: PDO::PARAM_STR)
+     * @returns string
      */
-    public function __call($name, array $args) {
-        if ( !isset($this->dbh) ) { $this->connect(); } // Reconnect if we were explicitly disconnected
-        return call_user_func_array(array($this->dbh,$name), $args);
+    public function quote( $string, $parameter_type = self::PARAM_STR ) {
+        return $this->dbh->quote( $string, $parameter_type );
+    }
+    
+    /**
+     * @returns mixed
+     */
+    public function errorCode() {
+        return $this->dbh->errorCode();
     }
     
     /**
      * @returns array
      */
-    static public function getAvailableDrivers() {
-        return PDO::getAvailableDrivers();
+    public function errorInfo() {
+        return $this->dbh->errorInfo();
+    }
+    
+    /**
+     * @param string $name (default: NULL)
+     * @returns string
+     */
+    public function lastInsertId($name=null) {
+        return $this->dbh->lastInsertId();
     }
     
     /**
