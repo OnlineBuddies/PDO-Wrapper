@@ -8,7 +8,7 @@
  * @package mh_lime
  */
 
-require_once dirname(__FILE__)."/lime.php";
+require_once dirname(__FILE__)."/lime_test.php";
 
 if (getenv("TEST_COVERAGE")) {
     require_once "PHP/CodeCoverage/Autoload.php";
