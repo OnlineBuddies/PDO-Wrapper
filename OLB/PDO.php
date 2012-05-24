@@ -677,13 +677,6 @@ class OLB_PDO extends PDO {
     }
     
     /**
-     * @returns array
-     */
-    static public function getAvailableDrivers() {
-        return parent::getAvailableDrivers();
-    }
-    
-    /**
      * Log a reconnection attempt.
      * 
      * @param integer $connects
