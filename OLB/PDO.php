@@ -6,6 +6,7 @@
  * @author bturner@online-buddies.com
  */
 require_once( dirname(__FILE__)."/PDO/STH.php" );
+require_once( dirname(__FILE__)."/PDOCommitTransaction.php" );
 
 /**
  * A wrapper for PDO that adds connection retries, singletons and safer transactions
@@ -496,6 +497,7 @@ class OLB_PDO extends PDO {
                 }
                 // Out of retries, rethrow the exception
                 if ( $tries > $maxRetries ) {
+                    if ( $single ) { $this->makeSingleton(); }
                     throw $e;
                 }
                 // If this is the usual kind of retryable exception, reconnect and retry
@@ -505,12 +507,18 @@ class OLB_PDO extends PDO {
                 }
                 // If this is NOT a deadlock, rewthrow it
                 else if ( ! $this->_is_deadlock($e) ) {
+                    if ( $single ) { $this->makeSingleton(); }
                     throw $e;
                 }
                 // Otherwise it was a deadlock, sleep and retry
                 else {
                     $this->retrySleep($tries);
                 }
+            }
+            catch (OLB_PDOCommitTransaction $e) {
+                $this->commit();
+                if ( $single ) { $this->makeSingleton(); }
+                throw $e;
             }
             catch (Exception $e) {
                 try {
@@ -520,12 +528,11 @@ class OLB_PDO extends PDO {
                 if (isset($rollback)) {
                     call_user_func( $rollback, $this, $e, $tries, $maxRetries );
                 }
+                if ( $single ) { $this->makeSingleton(); }
                 throw $e;
             }
         }
-        if ( $single ) {
-            $this->makeSingleton();
-        }
+        if ( $single ) { $this->makeSingleton(); }
     }
     
     /**

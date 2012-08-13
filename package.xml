@@ -40,6 +40,7 @@
    <file baseinstalldir="/" name="build/lime_test.php" role="test" />
    <file baseinstalldir="/" name="build/mh_test.php" role="test" />
    <file baseinstalldir="/" name="OLB/PDO.php" role="php" />
+   <file baseinstalldir="/" name="PDOCommitTransaction.php" role="php" />
    <file baseinstalldir="/" name="OLB/PDO/STH.php" role="php" />
    <file baseinstalldir="/" name="test/Constructors.t" role="test" />
    <file baseinstalldir="/" name="test/Queries.t" role="test" />
