@@ -13,11 +13,11 @@
   <email>development@online-buddies.com</email>
   <active>yes</active>
  </lead>
- <date>2012-02-21</date>
- <time>18:40:00</time>
+ <date>2012-08-13</date>
+ <time>19:02:00</time>
  <version>
-  <release>0.2.0</release>
-  <api>0.1.1</api>
+  <release>0.2.1</release>
+  <api>0.1.2</api>
  </version>
  <stability>
   <release>beta</release>
@@ -25,22 +25,17 @@
  </stability>
  <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
  <notes>
-* Added RETRY_DEADLOCKS flag-- when it's true, we will retry deadlocked queries.
-* Converted Exception to PDOException
-* Reduced and simplified warnings relating to retries.  We now log only if
-  the first reconnect fails.  Previously we retried prior to the first
-  reconnection attempt if we had previously reconnected.
-* Changed retryable exception detection to use only on the error number.
-* Correctly throw calls to invalid methods on PDO_STH
-* Allow RETRIES and RETRY_DEADLOCKS to be overridden on calls to ->execute
-* Improved test suite with nearly 100% coverage
+* Add support for a special kind of exceptions, any that implement the
+  OLB_PDOCommitTransaction interface, that when thrown will not trigger a
+  rollback during an execTransaction block.
+* Fix resetting of the singleton flag after various exception handling.
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
    <file baseinstalldir="/" name="build/lime_test.php" role="test" />
    <file baseinstalldir="/" name="build/mh_test.php" role="test" />
    <file baseinstalldir="/" name="OLB/PDO.php" role="php" />
-   <file baseinstalldir="/" name="PDOCommitTransaction.php" role="php" />
+   <file baseinstalldir="/" name="OLB/PDOCommitTransaction.php" role="php" />
    <file baseinstalldir="/" name="OLB/PDO/STH.php" role="php" />
    <file baseinstalldir="/" name="test/Constructors.t" role="test" />
    <file baseinstalldir="/" name="test/Queries.t" role="test" />
@@ -64,6 +59,26 @@
  </dependencies>
  <phprelease />
  <changelog>
+  <release>
+   <version>
+    <release>0.2.1</release>
+    <api>0.1.2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2012-08-13</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
+   <notes>
+* Add support for a special kind of exceptions, any that implement the
+  OLB_PDOCommitTransaction interface, that when thrown will not trigger a
+  rollback during an execTransaction block.
+* Fix resetting of the singleton flag after various exception handling.
+* Change to inheriting from PDO, which allows OLB_PDO to pass PDO class
+  contraints.  It also massively simplifies constants access.
+   </notes>
+  </release>
   <release>
    <version>
     <release>0.2.0</release>
