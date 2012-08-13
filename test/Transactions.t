@@ -11,7 +11,7 @@ include dirname(__FILE__)."/../build/mh_test.php";
 require_once "OLB/PDO.php";
 
 global $t;
-$t = new mh_test(13);
+$t = new mh_test(15);
 
 function trace($msg) {
     global $t;
@@ -117,6 +117,50 @@ $sth = $dbh->prepare("SELECT * FROM pdo_test$suffix WHERE id=?");
 $sth->execute(array( $id ));
 $row = $sth->fetch();
 $t->like( $row['foo'], "/Test #\d+ added/", "Transaction completed");
+
+class TestException extends Exception implements OLB_PDOCommitTransaction {}
+
+// Test that throwing a PDOCommiTransaction exception doesn't rollback
+// anything.
+function test_throw_do($dbh) {
+    global $t;
+    $t->diag("Running transaction...");
+    global $suffix;
+    $sth = $dbh->prepare("SELECT MAX(id) FROM pdo_test$suffix");
+    $sth->execute();
+    $row = $sth->fetch();
+    $sth = $dbh->prepare("INSERT INTO pdo_test$suffix SET foo=?");
+    $sth->execute(array( "Test #".$row[0]." added"));
+    global $id;
+    $id = $dbh->lastInsertId();
+    throw new TestException();
+}
+function test_throw_rollback($dbh) {
+    global $t;
+    $t->diag("test1 rollback");
+}
+
+$t->try_test("Trying transaction with commit safe exception");
+try {
+    $dbh->execTransaction( "test_throw_do", "test_throw_rollback" );
+    $t->fail();
+    $t->diag("Didn't see an exception thrown at all");
+}
+catch (TestException $e) {
+    $t->pass();
+}
+catch (Exception $e) {
+    $t->fail();
+    $t->diag("Expected a TestException, get a ".class_name($e));
+}
+
+$sth = $dbh->prepare("SELECT * FROM pdo_test$suffix WHERE id=?");
+$sth->execute(array( $id ));
+$row = $sth->fetch();
+$t->like( $row['foo'], "/Test #\d+ added/", "Transaction completed");
+
+
+
 
 
 // Test that invalid transactions get rolled back
