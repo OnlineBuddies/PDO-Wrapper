@@ -391,7 +391,15 @@ class OLB_PDO_STH implements Iterator {
                     // fall through to the loop.
                 }
                 else {
-                    $this->dbh->queryException($e,$this->dump($bind));
+                    // If we're already in a transaction and this is a
+                    // deadlock that's normal a normal scenario, we just
+                    // rethrow without logging.
+                    if ( $this->dbh->_is_deadlock($e) and $this->dbh->inTransaction() ) {
+                        throw $e;
+                    }
+                    else {
+                        $this->dbh->queryException($e,$this->dump($bind));
+                    }
                 }
             }
             catch (Exception $e) {
