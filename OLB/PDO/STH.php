@@ -392,8 +392,8 @@ class OLB_PDO_STH implements Iterator {
                 }
                 else {
                     // If we're already in a transaction and this is a
-                    // deadlock that's normal a normal scenario, we just
-                    // rethrow without logging.
+                    // deadlock that's normal-- we just rethrow without
+                    // logging.
                     if ( $this->dbh->_is_deadlock($e) and $this->dbh->inTransaction() ) {
                         throw $e;
                     }
