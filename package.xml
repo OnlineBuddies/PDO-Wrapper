@@ -13,10 +13,10 @@
   <email>development@online-buddies.com</email>
   <active>yes</active>
  </lead>
- <date>2012-08-14</date>
- <time>19:31:00</time>
+ <date>2012-09-04</date>
+ <time>10:33:00</time>
  <version>
-  <release>0.2.2</release>
+  <release>0.2.3</release>
   <api>0.1.2</api>
  </version>
  <stability>
@@ -25,7 +25,7 @@
  </stability>
  <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
  <notes>
-* Fix permissions.
+* Stop logging error message for deadlocks-- they'll be logged by the retrier if need be.
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -56,6 +56,21 @@
  </dependencies>
  <phprelease />
  <changelog>
+  <release>
+   <version>
+    <release>0.2.3</release>
+    <api>0.1.2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2012-09-04</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
+   <notes>
+* Stop logging error message for deadlocks-- they'll be logged by the retrier if need be.
+   </notes>
+  </release>
   <release>
    <version>
     <release>0.2.2</release>
