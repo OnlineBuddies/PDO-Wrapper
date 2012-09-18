@@ -14,9 +14,9 @@
   <active>yes</active>
  </lead>
  <date>2012-09-18</date>
- <time>02:44:00</time>
+ <time>03:28:00</time>
  <version>
-  <release>0.2.4</release>
+  <release>0.2.5</release>
   <api>0.1.2</api>
  </version>
  <stability>
@@ -25,8 +25,7 @@
  </stability>
  <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
  <notes>
-* Fix logging on execute retries
-* Add ability to sleep only after n retries
+* Reverse the execute retry loop to work the same way as the other retry loops
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -57,6 +56,21 @@
  </dependencies>
  <phprelease />
  <changelog>
+  <release>
+   <version>
+    <release>0.2.5</release>
+    <api>0.1.2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2012-09-18</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
+   <notes>
+* Reverse the execute retry loop to work the same way as the other retry loops
+   </notes>
+  </release>
   <release>
    <version>
     <release>0.2.4</release>
