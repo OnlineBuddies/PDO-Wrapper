@@ -40,6 +40,9 @@ class OLB_PDO extends PDO {
     /// Retry deadlocks resulting from normal execute commands
     const RETRY_DEADLOCKS = -1005;
 
+    /// Sleep after the nth retry (default 0)
+    const RETRY_SLEEP_AFTER = -1006;
+
     /// Default connnection attributes:
     ///    Throw exceptions on errors and autocommit statements
     ///    Note that we can mix and match our own constant
@@ -50,6 +53,7 @@ class OLB_PDO extends PDO {
             self::RETRIES                 => 5,
             self::RETRY_BACKOFF           => 400, // ms
             self::RETRY_JITTER            => 0.50, // * RETRY_BACKOFF * rand(1.0)
+            self::RETRY_SLEEP_AFTER       => 0,
             self::TRACE                   => FALSE,
             self::RETRY_DEADLOCKS         => FALSE,
             self::ATTR_ERRMODE            => self::ERRMODE_EXCEPTION,
@@ -210,11 +214,13 @@ class OLB_PDO extends PDO {
      * @param $tries Number of tries so far
      */
     public function retrySleep($tries) {
-        $backoff = $this->getAttribute( self::RETRY_BACKOFF );
-        $jitter = $this->getAttribute( self::RETRY_JITTER );
-        $base_delay = $tries * $backoff;
-        $random_jitter = mt_rand(0,$backoff*$jitter);
-        usleep( ($base_delay + $random_jitter) * 1000 ); // msec to μsec
+        if ( $tries > $this->getAttribute( self::RETRY_SLEEP_AFTER ) ) {
+            $backoff = $this->getAttribute( self::RETRY_BACKOFF );
+            $jitter = $this->getAttribute( self::RETRY_JITTER );
+            $base_delay = $tries * $backoff;
+            $random_jitter = mt_rand(0,$backoff*$jitter);
+            usleep( ($base_delay + $random_jitter) * 1000 ); // msec to μsec
+        }
     }
     
     /**
