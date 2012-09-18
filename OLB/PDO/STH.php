@@ -344,7 +344,7 @@ class OLB_PDO_STH implements Iterator {
             $attrs = array();
         }
         $retry_deadlocks = isset($attrs[ OLB_PDO::RETRY_DEADLOCKS ]) ? $attrs[ OLB_PDO::RETRY_DEADLOCKS ] : $this->dbh->getAttribute( OLB_PDO::RETRY_DEADLOCKS );
-        $tries = isset($attrs[ OLB_PDO::RETRIES ]) ? $attrs[ OLB_PDO::RETRIES ] : $this->dbh->getAttribute( OLB_PDO::RETRIES );
+        $total_tries = isset($attrs[ OLB_PDO::RETRIES ]) ? $attrs[ OLB_PDO::RETRIES ] : $this->dbh->getAttribute( OLB_PDO::RETRIES );
 
         // Clear our tracking variables for iterator mode
         $this->rowSets = 0;
@@ -354,7 +354,7 @@ class OLB_PDO_STH implements Iterator {
         $args = func_get_args();
 
 
-        while ($tries--) {
+        for ( $tries = 1 ; $tries <= $total_tries ; ++$tries ) {
             $this->dbh->traceTimerStart();
 
             try {
