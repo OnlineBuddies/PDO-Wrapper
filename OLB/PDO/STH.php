@@ -275,19 +275,19 @@ class OLB_PDO_STH implements Iterator {
         
         // If all went well, we reapply all of our settings.
         if ( isset($this->fetchMode) ) {
-            call_user_func_array(array($this->sth,'setFetchMode'), $this->fetchMode);
+            call_user_func_array(array($this,'setFetchMode'), $this->fetchMode);
         }
         foreach ($this->bindValues as $k => $v) {
-            call_user_func_array(array($this->sth,'bindValue'), $v);
+            call_user_func_array(array($this,'bindValue'), $v);
         }
         foreach ($this->bindParams as $k => &$v) {
-            call_user_func_array(array($this->sth,'bindParam'), $v);
+            call_user_func_array(array($this,'bindParam'), $v);
         }
         foreach ($this->bindColumns as $k => &$v) {
-            call_user_func_array(array($this->sth,'bindColumn'), $v);
+            call_user_func_array(array($this,'bindColumn'), $v);
         }
         foreach ($this->attrs as $k=>$v) {
-            $this->sth->setAttribute( $k, $v );
+            $this->setAttribute( $k, $v );
         }
         return TRUE;
     }
@@ -339,7 +339,6 @@ class OLB_PDO_STH implements Iterator {
      */
     public function execute($bind = null, $attrs = null) {
 
-        $this->dbh->traceTimerStart();
 
         if ( ! isset($attrs) ) {
             $attrs = array();
@@ -356,6 +355,7 @@ class OLB_PDO_STH implements Iterator {
 
 
         while ($tries--) {
+            $this->dbh->traceTimerStart();
 
             try {
                 $result = $this->sth->execute($bind);
@@ -363,6 +363,7 @@ class OLB_PDO_STH implements Iterator {
                 return $result;
             }
             catch (PDOException $e) {
+                $this->dbh->traceCall("execute",$args);
                 if ( isset( $this->sth ) ) {
                     $this->sth->closeCursor();
                 }
@@ -403,6 +404,7 @@ class OLB_PDO_STH implements Iterator {
                 }
             }
             catch (Exception $e) {
+                $this->dbh->traceCall("execute",$args);
                 $this->sth->closeCursor();
                 throw $e;
             }
