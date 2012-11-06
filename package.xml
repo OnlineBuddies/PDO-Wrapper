@@ -13,10 +13,10 @@
   <email>development@online-buddies.com</email>
   <active>yes</active>
  </lead>
- <date>2012-09-18</date>
- <time>03:28:00</time>
+ <date>2012-11-06</date>
+ <time>11:20:00</time>
  <version>
-  <release>0.2.5</release>
+  <release>0.2.6</release>
   <api>0.1.2</api>
  </version>
  <stability>
@@ -25,7 +25,7 @@
  </stability>
  <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
  <notes>
-* Reverse the execute retry loop to work the same way as the other retry loops
+* Disconnect on rollback failures
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -56,6 +56,21 @@
  </dependencies>
  <phprelease />
  <changelog>
+  <release>
+   <version>
+    <release>0.2.6</release>
+    <api>0.1.2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2012-11-06</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
+   <notes>
+* Disconnect on rollback failures
+   </notes>
+  </release>
   <release>
    <version>
     <release>0.2.5</release>
