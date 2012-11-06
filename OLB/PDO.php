@@ -529,7 +529,9 @@ class OLB_PDO extends PDO {
             catch (Exception $e) {
                 try {
                     $this->rollBack();
-                } catch (Exception $re) {}
+                } catch (Exception $re) {
+                    $this->disconnect();
+                }
                 
                 if (isset($rollback)) {
                     call_user_func( $rollback, $this, $e, $tries, $maxRetries );
