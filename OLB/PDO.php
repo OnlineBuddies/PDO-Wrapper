@@ -469,6 +469,7 @@ class OLB_PDO extends PDO {
      * @param Callable $do
      * @param Callable $rollback (optional)
      * @param integer $maxRetries
+     * @returns The return value of the $do call
      */
     public function execTransaction( $do, $rollback=null, $maxRetries=null ) {
         assert( 'is_callable($do)');
@@ -484,12 +485,14 @@ class OLB_PDO extends PDO {
         if ( $single ) {
             $this->clearSingleton();
         }
+
+        $return = null;
         $tries = 0;
         while ( 1 ) {
             $tries ++;
             try {
                 $this->beginTransaction();
-                call_user_func( $do, $this );
+                $return = call_user_func( $do, $this );
                 $this->commit();
                 break;
             }
@@ -541,6 +544,7 @@ class OLB_PDO extends PDO {
             }
         }
         if ( $single ) { $this->makeSingleton(); }
+        return $return;
     }
     
     /**
