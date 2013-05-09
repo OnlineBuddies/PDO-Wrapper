@@ -480,10 +480,13 @@ class OLB_PDO extends PDO {
         assert( 'is_int($maxRetries)');
         assert( '$maxRetries > 0');
         assert( '$maxRetries < 100');
-        
+
+        $traceArgs = array( "...", isset($rollback) ? "..." : null, $maxRetries );
+
         $single = $this->is_singleton;
         if ( $single ) {
             $this->clearSingleton();
+            array_unshift( $traceArgs, ":single" );
         }
 
         $return = null;
@@ -507,6 +510,8 @@ class OLB_PDO extends PDO {
                 // Out of retries, rethrow the exception
                 if ( $tries > $maxRetries ) {
                     if ( $single ) { $this->makeSingleton(); }
+                    array_unshift( $traceArgs, "x$tries" );
+                    $this->traceCall( "execTransaction", $traceArgs, $return, false );
                     throw $e;
                 }
                 // If this is the usual kind of retryable exception, reconnect and retry
@@ -514,10 +519,9 @@ class OLB_PDO extends PDO {
                     $this->connect($e);
                     $this->retrySleep($tries);
                 }
-                // If this is NOT a deadlock, rewthrow it
+                // If this is NOT a deadlock then we treat this like a generic exception
                 else if ( ! $this->_is_deadlock($e) ) {
-                    if ( $single ) { $this->makeSingleton(); }
-                    throw $e;
+                    $this->do_rollback_with_udf( $rollback, $e, $tries, $maxRetries, $single, $traceArgs );
                 }
                 // Otherwise it was a deadlock, sleep and retry
                 else {
@@ -527,26 +531,36 @@ class OLB_PDO extends PDO {
             catch (OLB_PDOCommitTransaction $e) {
                 $this->commit();
                 if ( $single ) { $this->makeSingleton(); }
+                array_unshift( $traceArgs, "x$tries", ":commitException=".get_class($e).": ".$e->getMessage() );
+                $this->traceCall( "execTransaction", $traceArgs, $return, false );
                 throw $e;
             }
             catch (Exception $e) {
-                try {
-                    $this->rollBack();
-                } catch (Exception $re) {
-                    $this->disconnect();
-                }
-                
-                if (isset($rollback)) {
-                    call_user_func( $rollback, $this, $e, $tries, $maxRetries );
-                }
-                if ( $single ) { $this->makeSingleton(); }
-                throw $e;
+                $this->do_rollback_with_udf( $rollback, $e, $tries, $maxRetries, $single, $traceArgs );
             }
         }
         if ( $single ) { $this->makeSingleton(); }
+        array_unshift( $traceArgs, "x$tries" );
+        $this->traceCall( "execTransaction", $traceArgs, $return, false );
         return $return;
     }
-    
+
+    protected function do_rollback_with_udf( $rollback, $e, $tries, $maxRetries, $single, $traceArgs ) {
+        try {
+            $this->rollBack();
+        } catch (Exception $re) {
+            $this->disconnect();
+        }
+
+        if (isset($rollback)) {
+            call_user_func( $rollback, $this, $e, $tries, $maxRetries );
+        }
+        if ( $single ) { $this->makeSingleton(); }
+        array_unshift( $traceArgs, "x$tries", ":rollbackException=".get_class($e).": ".$e->getMessage() );
+        $this->traceCall( "execTransaction", $traceArgs, $return, false );
+        throw $e;
+    }
+
     /**
      * @returns bool
      */
@@ -706,7 +720,7 @@ class OLB_PDO extends PDO {
         assert('is_int($connects)');
         assert('is_int($retries)');
         assert('is_string($str)');
-        error_log("MySQL connection #".$connects.", retry #".$retries.": $str");
+        $this->logWarning("MySQL connection #".$connects.", retry #".$retries.": $str");
     }
     
     /**
@@ -727,7 +741,7 @@ class OLB_PDO extends PDO {
      * @param array $args Arguments to the function being called
      * @param string $return Return value of the function being called
      */
-    public function traceCall( $func, array $args = array(), $return = NULL ) {
+    public function traceCall( $func, array $args = array(), $return = NULL, $useTimer = true ) {
         assert('is_string($func)');
         if ( $this->canTrace() ) {
             $out = $func . "(";
@@ -736,7 +750,7 @@ class OLB_PDO extends PDO {
             if ( isset( $return ) ) {
                 $out .= " = $return";
             }
-            if ( $this->startTime ) {
+            if ( $useTimer and $this->startTime ) {
                 $out .= " in ".floor( (microtime(TRUE)-$this->startTime) * 1000 ) . " ms";
                 $this->startTime = 0;
             }
@@ -764,7 +778,7 @@ class OLB_PDO extends PDO {
             call_user_func( $this->opts[self::TRACE], $str );
         }
         else {
-            error_log("TRACE: $str");
+            $this->logWarning("TRACE: $str");
         }
     }
     
