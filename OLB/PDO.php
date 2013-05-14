@@ -557,7 +557,7 @@ class OLB_PDO extends PDO {
         }
         if ( $single ) { $this->makeSingleton(); }
         array_unshift( $traceArgs, "x$tries", ":rollbackException=".get_class($e).": ".$e->getMessage() );
-        $this->traceCall( "execTransaction", $traceArgs, $return, false );
+        $this->traceCall( "execTransaction", $traceArgs, null, false );
         throw $e;
     }
 
