@@ -7,6 +7,7 @@
  */
 require_once( dirname(__FILE__)."/PDO/STH.php" );
 require_once( dirname(__FILE__)."/PDOCommitTransaction.php" );
+require_once( dirname(__FILE__)."/PDORetryTransaction.php" );
 
 /**
  * A wrapper for PDO that adds connection retries, singletons and safer transactions
@@ -349,7 +350,7 @@ class OLB_PDO extends PDO {
      */
     public function _is_deadlock(Exception $e) {
         $msg = $e->getMessage();
-        if ( strpos( $msg, " 1213 " ) !== FALSE ) {
+        if ( $e instanceOf PDOException AND strpos( $msg, " 1213 " ) !== FALSE ) {
             return TRUE;
         }
         else {
@@ -507,44 +508,55 @@ class OLB_PDO extends PDO {
                 $this->commit();
                 break;
             }
-            catch (PDOException $e) {
-                try {
-                    $this->rollBack();
-                } catch (Exception $re) {}
+            catch (Exception $e) {
+                if ( $e instanceOf PDOException or $e instanceOf OLB_PDORetryTransaction ) {
+                    try {
+                        $this->rollBack();
+                    } catch (Exception $re) {}
 
-                if (isset($rollback)) {
-                    call_user_func( $rollback, $this, $e, $tries, $maxRetries );
+                    if (isset($rollback)) {
+                        call_user_func( $rollback, $this, $e, $tries, $maxRetries );
+                    }
+                    // Out of retries, rethrow the exception
+                    if ( $tries > $maxRetries ) {
+                        if ( $single ) { $this->makeSingleton(); }
+                        array_unshift( $traceArgs, "x$tries" );
+                        $this->traceCall( "execTransaction", $traceArgs, $return, false );
+                        throw $e;
+                    }
+                    // If this is the usual kind of retryable exception, reconnect and retry
+                    else if ( $this->_retryable($e) ) {
+                        $this->connect($e);
+                        $this->retrySleep($tries);
+                    }
+                    // If this is NOT a deadlock then we treat this like a generic exception
+                    else if ( ! $this->_is_deadlock($e) and ! $e instanceOf OLB_PDORetryTransaction ) {
+                        $this->do_after_last_rollback( $e, $tries, $single, $traceArgs );
+                    }
+                    // Otherwise it was a deadlock, sleep and retry
+                    else {
+                        $this->retrySleep($tries);
+                    }
                 }
-                // Out of retries, rethrow the exception
-                if ( $tries > $maxRetries ) {
+                else if ( $e instanceOf OLB_PDOCommitTransaction ) {
+                    $this->commit();
                     if ( $single ) { $this->makeSingleton(); }
-                    array_unshift( $traceArgs, "x$tries" );
+                    array_unshift( $traceArgs, "x$tries", ":commitException=".get_class($e).": ".$e->getMessage() );
                     $this->traceCall( "execTransaction", $traceArgs, $return, false );
                     throw $e;
                 }
-                // If this is the usual kind of retryable exception, reconnect and retry
-                else if ( $this->_retryable($e) ) {
-                    $this->connect($e);
-                    $this->retrySleep($tries);
-                }
-                // If this is NOT a deadlock then we treat this like a generic exception
-                else if ( ! $this->_is_deadlock($e) ) {
-                    $this->do_rollback_with_udf( $rollback, $e, $tries, $maxRetries, $single, $traceArgs );
-                }
-                // Otherwise it was a deadlock, sleep and retry
                 else {
-                    $this->retrySleep($tries);
+                    try {
+                        $this->rollBack();
+                    } catch (Exception $re) {
+                        $this->disconnect();
+                    }
+
+                    if (isset($rollback)) {
+                        call_user_func( $rollback, $this, $e, $tries, $maxRetries );
+                    }
+                    $this->do_after_last_rollback( $e, $tries, $single, $traceArgs );
                 }
-            }
-            catch (OLB_PDOCommitTransaction $e) {
-                $this->commit();
-                if ( $single ) { $this->makeSingleton(); }
-                array_unshift( $traceArgs, "x$tries", ":commitException=".get_class($e).": ".$e->getMessage() );
-                $this->traceCall( "execTransaction", $traceArgs, $return, false );
-                throw $e;
-            }
-            catch (Exception $e) {
-                $this->do_rollback_with_udf( $rollback, $e, $tries, $maxRetries, $single, $traceArgs );
             }
         }
         if ( $single ) { $this->makeSingleton(); }
@@ -553,16 +565,7 @@ class OLB_PDO extends PDO {
         return $return;
     }
 
-    protected function do_rollback_with_udf( $rollback, $e, $tries, $maxRetries, $single, $traceArgs ) {
-        try {
-            $this->rollBack();
-        } catch (Exception $re) {
-            $this->disconnect();
-        }
-
-        if (isset($rollback)) {
-            call_user_func( $rollback, $this, $e, $tries, $maxRetries );
-        }
+    protected function do_after_last_rollback( $e, $tries, $single, $traceArgs ) {
         if ( $single ) { $this->makeSingleton(); }
         array_unshift( $traceArgs, "x$tries", ":rollbackException=".get_class($e).": ".$e->getMessage() );
         $this->traceCall( "execTransaction", $traceArgs, null, false );
