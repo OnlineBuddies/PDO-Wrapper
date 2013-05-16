@@ -43,6 +43,9 @@ class OLB_PDO extends PDO {
     /// Sleep after the nth retry (default 0)
     const RETRY_SLEEP_AFTER = -1006;
 
+    /// Run on connect/reconnect
+    const INIT_COMMAND     = -1007;
+
     /// Default connnection attributes:
     ///    Throw exceptions on errors and autocommit statements
     ///    Note that we can mix and match our own constant
@@ -58,7 +61,7 @@ class OLB_PDO extends PDO {
             self::RETRY_DEADLOCKS         => FALSE,
             self::ATTR_ERRMODE            => self::ERRMODE_EXCEPTION,
             self::ATTR_AUTOCOMMIT         => TRUE,
-            self::MYSQL_ATTR_INIT_COMMAND => 'SET CHARACTER SET UTF8',
+            self::INIT_COMMAND            => 'SET CHARACTER SET UTF8',
             );
     }
 
@@ -256,6 +259,11 @@ class OLB_PDO extends PDO {
 
                 foreach ($this->attrs as $k=>$v) {
                     $this->dbh->setAttribute( $k, $v );
+                }
+                if ( $initCmd = $this->opts[self::INIT_COMMAND] ) {
+                    foreach ((array)$initCmd as $sql) {
+                        $this->dbh->exec($sql);
+                    }
                 }
                 return;
             }
