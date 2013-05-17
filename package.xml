@@ -13,10 +13,10 @@
   <email>development@online-buddies.com</email>
   <active>yes</active>
  </lead>
- <date>2012-11-06</date>
- <time>11:20:00</time>
+ <date>2013-05-17</date>
+ <time>13:13:00</time>
  <version>
-  <release>0.2.6</release>
+  <release>0.2.7</release>
   <api>0.1.2</api>
  </version>
  <stability>
@@ -56,6 +56,23 @@
  </dependencies>
  <phprelease />
  <changelog>
+  <release>
+   <version>
+    <release>0.2.7</release>
+    <api>0.1.2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2013-05-17</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
+   <notes>
+* Provide our own implementation of MYSQL_ATTR_INIT_COMMAND as INIT_COMMAND
+* Add database tracing to exectransaction
+* execTransaction should pass along the return from its callable
+   </notes>
+  </release>
   <release>
    <version>
     <release>0.2.6</release>
