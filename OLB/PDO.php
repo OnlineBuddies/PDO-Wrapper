@@ -69,8 +69,8 @@ class OLB_PDO extends PDO {
     private $opts = array();
     private $attrs = array();
     private $dbh;
-    private $in_trans = FALSE;
     private $is_singleton = FALSE;
+    private $trans_depth = 0;
 
     /**
      * A utility method to split OLB_PDO options from PDO connection attributes.
@@ -287,7 +287,7 @@ class OLB_PDO extends PDO {
      */
     public function disconnect() {
         unset($this->dbh);
-        $this->in_trans = FALSE;
+        $this->trans_depth = 0;
     }
 
     /**
@@ -579,12 +579,15 @@ class OLB_PDO extends PDO {
         if ( $this->is_singleton ) {
             throw new PDOException("Can't begin a transaction on a singleton database handle");
         }
-        if ( $this->inTransaction() ) {
-            throw new PDOException("beginTransaction called while already in a transaction and we don't support nested transactions");
-        }
 
         try {
-            $result = $this->dbh->beginTransaction();
+            if ( $this->trans_depth ) {
+                $result = $this->exec("SAVEPOINT nested{$this->trans_depth}");
+                $result = ($result !== FALSE);
+            }
+            else {
+                $result = $this->dbh->beginTransaction();
+            }
         }
         catch (PDOException $e) {
             if ( $this->_retryable($e) ) {
@@ -597,8 +600,9 @@ class OLB_PDO extends PDO {
         }
 
         if ( $result ) {
-            $this->traceCall("beginTransaction",array(),TRUE);
-            return $this->in_trans = TRUE;
+            $this->trans_depth ++;
+            $this->traceCall("beginTransaction",array(),$this->trans_depth);
+            return $this->trans_depth;
         }
         else {
             $this->traceCall("beginTransaction",array(),FALSE);
@@ -614,9 +618,13 @@ class OLB_PDO extends PDO {
             throw new PDOException("Can't commit on a disconnected database handle.");
         }
 
-        $this->traceCall("commit");
-        $this->in_trans = FALSE;
-        return $this->dbh->commit();
+        $this->traceCall("commit({$this->trans_depth})");
+        if ( -- $this->trans_depth ) {
+            return $this->exec("RELEASE nested{$this->trans_depth}");
+        }
+        else {
+            return $this->dbh->commit();
+        }
     }
 
     /**
@@ -627,9 +635,13 @@ class OLB_PDO extends PDO {
             throw new PDOException("Can't rollback on a disconnected database handle.");
         }
 
-        $this->traceCall("rollBack");
-        $this->in_trans = FALSE;
-        return $this->dbh->rollBack();
+        $this->traceCall("rollBack({$this->trans_depth})");
+        if ( -- $this->trans_depth ) {
+            return $this->exec("ROLLBACK TO nested{$this->trans_depth}");
+        }
+        else {
+            return $this->dbh->rollBack();
+        }
     }
 
     /**
@@ -639,7 +651,7 @@ class OLB_PDO extends PDO {
      * @returns bool
      */
     public function inTransaction() {
-        return $this->in_trans;
+        return $this->trans_depth;
     }
 
     /**

@@ -11,7 +11,7 @@ include dirname(__FILE__)."/../build/mh_test.php";
 require_once "OLB/PDO.php";
 
 global $t;
-$t = new mh_test(15);
+$t = new mh_test(16);
 
 function trace($msg) {
     global $t;
@@ -48,18 +48,8 @@ foreach ($init as $sql) {
 
 $dbh->exec("DROP TABLE IF EXISTS pdo_test$suffix");
 $dbh->exec("CREATE TABLE pdo_test$suffix ( id int auto_increment primary key, foo varchar(50) not null ) ENGINE=InnoDB");
+$id = 1;
 
-$t->try_test("Nested transactions throw an exception");
-try {
-    $dbh2->beginTransaction();
-    $dbh2->beginTransaction();
-    $t->fail();
-}
-catch (PDOException $e) {
-    $t->pass();
-}
-
-$dbh2->rollBack();
 $dbh2->beginTransaction();
 
 $dbh2->exec("INSERT INTO pdo_test$suffix SET foo='test this'");
@@ -112,6 +102,54 @@ function test1_rollback($dbh) {
 }
 
 $dbh->execTransaction( "test1_do", "test1_rollback" );
+
+$sth = $dbh->prepare("SELECT * FROM pdo_test$suffix WHERE id=?");
+$sth->execute(array( $id ));
+$row = $sth->fetch();
+$t->like( $row['foo'], "/Test #\d+ added/", "Transaction completed");
+
+// Test nested 
+function nest1_do($dbh) {
+    global $t;
+    $t->diag("Running transaction...");
+    global $suffix;
+    $sth = $dbh->prepare("SELECT MAX(id) FROM pdo_test$suffix");
+    $sth->execute();
+    $row = $sth->fetch();
+    $testNum = ($row[0]) + 1;
+    $sth = $dbh->prepare("INSERT INTO pdo_test$suffix SET foo=?");
+    $sth->execute(array( "Test #$testNum added"));
+    global $id;
+    $id = $dbh->lastInsertId();
+    try {
+        $dbh->execTransaction( "nest2_do", "nest2_rollback" );
+    }
+    catch (Exception $e) {
+        $t->diag("Sub exception ".$e->getMessage());
+    }
+}
+function nest1_rollback($dbh) {
+    global $t;
+    $t->diag("nest1 rollback");
+}
+function nest2_do($dbh) {
+    global $t;
+    $t->diag("Running transaction...");
+    global $suffix;
+    $sth = $dbh->prepare("SELECT MAX(id) FROM pdo_test$suffix");
+    $sth->execute();
+    $row = $sth->fetch();
+    $testNum = ($row[0]) + 1;
+    $sth = $dbh->prepare("INSERT INTO pdo_test$suffix SET foo=?");
+    $sth->execute(array( "Test #$testNum added"));
+    throw new Exception("BOOM");
+}
+function nest2_rollback($dbh) {
+    global $t;
+    $t->diag("nest2 rollback");
+}
+
+$dbh->execTransaction( "nest1_do", "nest1_rollback" );
 
 $sth = $dbh->prepare("SELECT * FROM pdo_test$suffix WHERE id=?");
 $sth->execute(array( $id ));
