@@ -13,10 +13,10 @@
   <email>development@online-buddies.com</email>
   <active>yes</active>
  </lead>
- <date>2013-05-17</date>
- <time>13:13:00</time>
+ <date>2013-05-20</date>
+ <time>13:51:00</time>
  <version>
-  <release>0.2.7</release>
+  <release>0.2.8</release>
   <api>0.1.2</api>
  </version>
  <stability>
@@ -56,6 +56,24 @@
  </dependencies>
  <phprelease />
  <changelog>
+  <release>
+   <version>
+    <release>0.2.8</release>
+    <api>0.1.2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2013-05-20</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
+   <notes>
+* Fix transaction tests (there are only 15 now, not the previously asserted 16)
+* Suppress warnings about the INIT_COMMAND index not being in opts
+* Nested transactions via SAVEPOINTs-- note, experimental
+* Add the ability to throw exceptions that trigger transaction retries, ala deadlocks
+   </notes>
+  </release>
   <release>
    <version>
     <release>0.2.7</release>
