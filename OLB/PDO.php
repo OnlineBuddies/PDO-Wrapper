@@ -261,7 +261,7 @@ class OLB_PDO extends PDO {
                 foreach ($this->attrs as $k=>$v) {
                     $this->dbh->setAttribute( $k, $v );
                 }
-                if ( $initCmd = $this->opts[self::INIT_COMMAND] ) {
+                if ( @ $initCmd = $this->opts[self::INIT_COMMAND] ) {
                     foreach ((array)$initCmd as $sql) {
                         $this->dbh->exec($sql);
                     }
