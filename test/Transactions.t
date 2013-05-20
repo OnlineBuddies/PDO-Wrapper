@@ -11,7 +11,7 @@ include dirname(__FILE__)."/../build/mh_test.php";
 require_once "OLB/PDO.php";
 
 global $t;
-$t = new mh_test(16);
+$t = new mh_test(15);
 
 function trace($msg) {
     global $t;
