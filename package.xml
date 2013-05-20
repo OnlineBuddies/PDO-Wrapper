@@ -14,9 +14,9 @@
   <active>yes</active>
  </lead>
  <date>2013-05-20</date>
- <time>13:51:00</time>
+ <time>14:33:00</time>
  <version>
-  <release>0.2.8</release>
+  <release>0.2.9</release>
   <api>0.1.2</api>
  </version>
  <stability>
@@ -25,7 +25,7 @@
  </stability>
  <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
  <notes>
-* Disconnect on rollback failures
+* Add OLB/PDORetryTransaction.php to the build
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -33,6 +33,7 @@
    <file baseinstalldir="/" name="build/mh_test.php" role="test" />
    <file baseinstalldir="/" name="OLB/PDO.php" role="php" />
    <file baseinstalldir="/" name="OLB/PDOCommitTransaction.php" role="php" />
+   <file baseinstalldir="/" name="OLB/PDORetryTransaction.php" role="php" />
    <file baseinstalldir="/" name="OLB/PDO/STH.php" role="php" />
    <file baseinstalldir="/" name="test/Constructors.t" role="test" />
    <file baseinstalldir="/" name="test/Queries.t" role="test" />
@@ -56,6 +57,21 @@
  </dependencies>
  <phprelease />
  <changelog>
+  <release>
+   <version>
+    <release>0.2.9</release>
+    <api>0.1.2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2013-05-20</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD Style</license>
+   <notes>
+* Add OLB/PDORetryTransaction.php to the build
+   </notes>
+  </release>
   <release>
    <version>
     <release>0.2.8</release>
