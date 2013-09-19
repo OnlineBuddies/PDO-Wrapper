@@ -212,7 +212,7 @@ class OLB_PDO_STH implements Iterator {
         }
         catch (PDOException $e) {
             // If we got a MySQL has gone away error ...
-            if ( $this->dbh->_retryable($e) ) {
+            if ( $this->dbh->isRetryable($e) ) {
 
                 // If we were in a transaction, explicitly disconnect so that further activies
                 // will trigger a reconnect and throw an exception.
@@ -248,7 +248,7 @@ class OLB_PDO_STH implements Iterator {
         }
         catch (PDOException $e) {
             // If we got a MySQL has gone away error ...
-            if ( $this->dbh->_retryable($e) ) {
+            if ( $this->dbh->isRetryable($e) ) {
 
                 // If we were in a transaction, explicitly disconnect so that further activies
                 // will trigger a reconnect and throw an exception.
@@ -368,7 +368,7 @@ class OLB_PDO_STH implements Iterator {
                     $this->sth->closeCursor();
                 }
                 // If we got a MySQL has gone away error ...
-                if ( $this->dbh->_retryable($e) ) {
+                if ( $this->dbh->isRetryable($e) ) {
                     // If we were in a transaction, explicitly disconnect so that further activies
                     // will trigger a reconnect and throw an exception.
                     if ( $this->dbh->inTransaction() ) {
@@ -387,7 +387,7 @@ class OLB_PDO_STH implements Iterator {
                 // that means we called a proc that ran in a transaction.  As
                 // the transaction is entirely in the proc, we can safely retry
                 // it.
-                else if ( ! $this->dbh->inTransaction() and $retry_deadlocks and $this->dbh->_is_deadlock($e) ) {
+                else if ( ! $this->dbh->inTransaction() and $retry_deadlocks and $this->dbh->isDeadlock($e) ) {
                     // And we don't have to do anything to retry this, just
                     // fall through to the loop.
                 }
@@ -395,7 +395,7 @@ class OLB_PDO_STH implements Iterator {
                     // If we're already in a transaction and this is a
                     // deadlock that's normal-- we just rethrow without
                     // logging.
-                    if ( $this->dbh->_is_deadlock($e) and $this->dbh->inTransaction() ) {
+                    if ( $this->dbh->isDeadlock($e) and $this->dbh->inTransaction() ) {
                         throw $e;
                     }
                     else {
