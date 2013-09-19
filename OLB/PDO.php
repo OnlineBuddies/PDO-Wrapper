@@ -348,7 +348,7 @@ class OLB_PDO extends PDO {
      * @param Exception $e
      * @returns bool True if the exception represents a deadlock
      */
-    public function _is_deadlock(Exception $e) {
+    static public function isDeadlock(Exception $e) {
         $msg = $e->getMessage();
         if ( $e instanceOf PDOException AND strpos( $msg, " 1213 " ) !== FALSE ) {
             return TRUE;
@@ -362,7 +362,7 @@ class OLB_PDO extends PDO {
      * @param Exception $e
      * @returns Boolean True if the database error in $e is retryable
      */
-    public function _retryable(Exception $e) {
+    static public function isRetryable(Exception $e) {
         $msg = $e->getMessage();
         if ( strpos( $msg, " 2006 " ) !== FALSE or # MySQL server has gone away
              strpos( $msg, " 2013 " ) !== FALSE or # MySQL server has gone away
@@ -406,7 +406,7 @@ class OLB_PDO extends PDO {
         }
         catch (PDOException $e) {
             // If we got a MySQL has gone away error ...
-            if ( $this->_retryable($e) ) {
+            if ( $this->isRetryable($e) ) {
 
                 // If we were in a transaction, explicitly disconnect so that further activies
                 // will trigger a reconnect and throw an exception.
@@ -525,12 +525,12 @@ class OLB_PDO extends PDO {
                         throw $e;
                     }
                     // If this is the usual kind of retryable exception, reconnect and retry
-                    else if ( $this->_retryable($e) ) {
+                    else if ( $this->isRetryable($e) ) {
                         $this->connect($e);
                         $this->retrySleep($tries);
                     }
                     // If this is NOT a deadlock then we treat this like a generic exception
-                    else if ( ! $this->_is_deadlock($e) and ! $e instanceOf OLB_PDORetryTransaction ) {
+                    else if ( ! $this->isDeadlock($e) and ! $e instanceOf OLB_PDORetryTransaction ) {
                         $this->do_after_last_rollback( $e, $tries, $single, $traceArgs );
                     }
                     // Otherwise it was a deadlock, sleep and retry
@@ -593,7 +593,7 @@ class OLB_PDO extends PDO {
             }
         }
         catch (PDOException $e) {
-            if ( $this->_retryable($e) ) {
+            if ( $this->isRetryable($e) ) {
                 $this->connect($e);
                 $result = $this->dbh->beginTransaction();
             }
